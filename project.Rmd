@@ -1,0 +1,151 @@
+---
+title: 'Project: Analytics I'
+author: "Dilinee Sellahewa"
+date: "13/11/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+```{r}
+ts.plot(lynx, main = "Plot of raw Lynx Data")
+plot(diff(lynx))
+#x <- seq( length = 500)
+tmp <- hist(lynx)
+lines(c(min(tmp$breaks),tmp$mids,max(tmp$breaks)),c(0,tmp$counts,0),type="l")
+#hist(lynx, xlim = c(0,7000)); points(x, dnorm(x), type = "l")
+```
+
+
+```{r}
+acf(lynx, lag.max = 50, main = "Correlogram of raw Lynx Data")
+pacf(lynx, lag.max = 50, main = "Partial correlogram of raw Lynx Data")
+```
+According to ACF of the lynx data set seasonality occurs every 10 or 9 years. Proving this further using spectrum.
+
+```{r}
+spectrum(lynx)
+spectrum(lynx)$freq
+spectrum(lynx)$spec
+```
+```{r}
+s1 <- 1/0.100000000
+s2 <- 1/0.108333333
+print(s1)
+print(s2)
+```
+
+```{r}
+for (i in 0:9) {
+  ar <- arima(lynx, order = c(i,0,0))
+  print(paste0("AIC of AR",i, ": ", ar$aic))
+}
+
+acf(arima(lynx, order = c(8,0,0))$resid)
+```
+
+
+Hence taking pacf of first order difference.
+
+```{r}
+acf(diff(lynx, lag = 9),lag.max = 70, main = "Partial Correlogram for first order difference of lynx data with seasonality = 9")
+acf(diff(lynx, lag = 10),lag.max = 70)
+```
+
+As lag = 9 has less significant lags, proceeding with that.
+
+```{r}
+acf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(0,1,0), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(0,1,0), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(2,0,0), seasonal = list(order = c(0,1,0), period = 9))
+```
+
+Adding seasonal AR terms
+
+```{r}
+acf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(1,1,0), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(1,1,0), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(2,0,0), seasonal = list(order = c(1,1,0), period = 9))
+```
+```{r}
+acf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(1,1,1), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(1,1,1), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(2,0,0), seasonal = list(order = c(1,1,1), period = 9))
+
+```
+
+
+```{r}
+acf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(2,1,1), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(2,0,0), seasonal = list(order = c(2,1,1), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(2,0,0), seasonal = list(order = c(2,1,1), period = 9))
+
+```
+adding non seasonal MA terms
+
+```{r}
+acf(arima(lynx, order = c(2,0,1), seasonal = list(order = c(1,1,0), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(2,0,1), seasonal = list(order = c(1,1,0), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(2,0,1), seasonal = list(order = c(1,1,0), period = 9))
+```
+Reducing non-seasonal AR terms
+
+```{r}
+acf(arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,0), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,0), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,0), period = 9))
+```
+
+adding seasonal MA terms
+
+
+```{r}
+acf(arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,1), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,1), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,1), period = 9))
+```
+
+```{r}
+acf(arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,1), period = 9))$resid, main = "Correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+pacf(arima(lynx, order = c(2,0,2), seasonal = list(order = c(1,1,1), period = 9))$resid, main = "Partial correlogram of ARIMA(2,0,0)(0,1,0), s = 9")
+arima(lynx, order = c(2,0,2), seasonal = list(order = c(1,1,1), period = 9))
+
+```
+
+
+
+hence selected model is, 
+arima(lynx, order = c(1,0,1), seasonal = list(order = c(1,1,0), period = 9))
+
+```{r}
+predict(arima(lynx, order=c(1,0,1),seasonal=list(order=c(1,1,0),period=9)),n.ahead=18)$pred
+```
+Plotting predicts and forecasts
+```{r}
+actual_df <- data.frame(year = time(lynx), trappings = as.matrix(lynx))
+pred <- predict(arima(lynx,order=c(1,0,1),seasonal=list(order=c(1,1,0),period=9)),n.ahead=18)$pred
+pred_df <- data.frame(year = time(pred), trappings = as.matrix(pred))
+
+
+ggplot() +
+	geom_line(data = actual_df, aes(x = year, y = trappings, colour = "Actual lynx trappings")) +  # Plotting original data
+	geom_line(data = pred_df, aes(x = year, y = trappings, colour = "Forecasted lynx trappings"))+ 
+  #labs(color = "Legend")+
+  scale_colour_manual("", 
+                      breaks = c("Actual lynx trappings", "Forecasted lynx trappings"),
+                      values = c("black", "blue")) + 
+  labs(title = "Actual and Forecasted lynx trappings")
+	theme_classic()
+```
+
+
+```{r}
+for (i in 0:9) {
+  ar <- arima(lynx, order = c(8,0,0))
+  print(paste0("AIC of AR",i, ": ", ar$aic))
+}
+```
+
